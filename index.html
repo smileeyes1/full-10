@@ -2,22 +2,22 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>رحلة البطل الأمين – مسائل وقصص</title>
+<title>رحلة التعلّم – الضرب بالقصص</title>
 
 <style>
 body{
   font-family:"Tajawal",Arial;
-  margin:0;
   background:#eef7ee;
+  margin:0;
   color:#1b5e20;
 }
-.container{max-width:560px;margin:auto;padding:16px}
+.container{max-width:600px;margin:auto;padding:16px}
 .card{
-  background:#fff;
+  background:#ffffff;
   border-radius:18px;
-  padding:16px;
-  margin-top:12px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+  padding:18px;
+  margin-top:14px;
+  box-shadow:0 4px 10px rgba(0,0,0,.1);
 }
 .character{display:flex;gap:10px;align-items:center}
 .avatar{font-size:36px}
@@ -28,13 +28,12 @@ body{
   border-radius:14px;
   line-height:1.9;
 }
-.visual{text-align:center;font-size:26px;margin:8px 0}
+.visual{text-align:center;font-size:26px;margin:10px 0}
 input{
   width:100%;
   font-size:22px;
   text-align:center;
   padding:6px;
-  margin-top:6px;
 }
 button{
   padding:10px 16px;
@@ -47,16 +46,16 @@ button{
 }
 .secondary{background:#1b5e20}
 .hidden{display:none}
-.helper{
+.note{
   background:#fff8e1;
   padding:12px;
   border-radius:12px;
-  margin-top:8px;
+  margin-top:10px;
 }
-.footer{
+.progress{
   font-size:14px;
-  color:#2e7d32;
   margin-top:8px;
+  color:#2e7d32;
 }
 </style>
 </head>
@@ -64,16 +63,16 @@ button{
 <body>
 <div class="container">
 
-<!-- المقدمة -->
 <div id="intro" class="card">
   <div class="character">
     <div class="avatar">🧔🏻‍♂️</div>
     <div class="name">المعلّم</div>
   </div>
   <div class="speech">
-    يا بطل 🌿  
-    اليوم سنتعلّم معًا بالقصص والتجربة.  
-    التعلّم عبادة، والله يحب المجتهد الصبور.
+    بسم الله 🌿  
+    سنتعلّم اليوم خطوة خطوة،  
+    والهدوء والصبر طريق النجاح.  
+    <b>محاولتك عبادة جميلة.</b>
   </div>
 
   <p>اسم الطالب:</p>
@@ -85,130 +84,131 @@ button{
   <button onclick="startLesson()">ابدأ الدرس 🤍</button>
 </div>
 
-<!-- الدرس -->
 <div id="lesson" class="card hidden">
-
   <div class="character" id="charBox"></div>
   <div class="speech" id="textBox"></div>
+
   <div class="visual" id="visualBox"></div>
 
-  <input id="answer" placeholder="اكتب الناتج هنا">
+  <input id="answer" placeholder="اكتب الناتج">
 
-  <button onclick="checkAnswer()">أتحقق 🌱</button>
-  <button class="secondary" onclick="helpMe()">أحتاج مساعدة</button>
+  <button onclick="check()">أفكّر بهدوء</button>
+  <button class="secondary" onclick="help()">أحتاج مساعدة</button>
 
-  <div id="helperBox" class="helper hidden"></div>
-  <div class="footer" id="progress"></div>
-
+  <div id="note" class="note hidden"></div>
+  <div class="progress" id="progress"></div>
 </div>
+
 </div>
 
 <script>
-/* ===== متغيرات ===== */
+/* ——— بيانات الطالب ——— */
 let student="", parent="";
-let index=0;
+
+/* ——— تتبع الأداء ——— */
+let level=1;
 let correct=0;
+let wrong=0;
+let tries=0;
+
+/* ——— المسألة الحالية ——— */
 let a=0,b=0;
 
-/* ===== عناصر ===== */
+/* ——— عناصر ——— */
 const intro=document.getElementById("intro");
 const lesson=document.getElementById("lesson");
 const charBox=document.getElementById("charBox");
 const textBox=document.getElementById("textBox");
 const visualBox=document.getElementById("visualBox");
 const answer=document.getElementById("answer");
-const helperBox=document.getElementById("helperBox");
+const note=document.getElementById("note");
 const progress=document.getElementById("progress");
 
-/* ===== أرقام عربية ===== */
+/* ——— أرقام عربية ——— */
 function ar(n){
   return n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
 }
 
-/* ===== بنك القصص (مسائل كثيرة) ===== */
-const problems=[
- {who:"🧔🏻‍♂️",name:"المعلّم",story:(a,b)=>`قال المعلّم: لدينا ${ar(a)} مجموعات، وفي كل مجموعة ${ar(b)} أشياء.`},
- {who:"👩‍👦",name:"وليّ الأمر",story:(a,b)=>`قال ${parent}: رتبتُ ${ar(a)} أطباق، في كل طبق ${ar(b)} تمرات.`},
- {who:"👦",name:"الطفل",story:(a,b)=>`قال ${student}: لدي ${ar(a)} أكياس، في كل كيس ${ar(b)} كرات.`},
- {who:"🧑‍🌾",name:"البستاني",story:(a,b)=>`زرع ${ar(a)} صفوف، في كل صف ${ar(b)} شجيرات.`},
- {who:"🐝",name:"النحلة",story:(a,b)=>`جمعت النحلة ${ar(a)} خلايا، في كل خلية ${ar(b)} قطرات عسل.`}
-];
-
-/* ===== بدء الدرس ===== */
+/* ——— بدء ——— */
 function startLesson(){
   student=document.getElementById("studentName").value||"بطلنا";
   parent=document.getElementById("parentName").value||"وليّه";
   intro.classList.add("hidden");
   lesson.classList.remove("hidden");
-  showProblem();
+  nextProblem();
 }
 
-/* ===== عرض مسألة ===== */
-function showProblem(){
-  helperBox.classList.add("hidden");
-  answer.value="";
-  a=Math.floor(Math.random()*3)+2;
-  b=Math.floor(Math.random()*3)+1;
-  const p=problems[index%problems.length];
+/* ——— إنشاء مسألة حسب المستوى ——— */
+function generate(){
+  if(level===1){ a=2+Math.floor(Math.random()*2); b=1+Math.floor(Math.random()*2); }
+  if(level===2){ a=3+Math.floor(Math.random()*2); b=2+Math.floor(Math.random()*2); }
+  if(level>=3){ a=4+Math.floor(Math.random()*2); b=3+Math.floor(Math.random()*2); }
+}
 
-  charBox.innerHTML=`<div class="avatar">${p.who}</div><div class="name">${p.name}</div>`;
+/* ——— عرض مسألة ——— */
+function nextProblem(){
+  note.classList.add("hidden");
+  answer.value="";
+  generate();
+
+  charBox.innerHTML=`<div class="avatar">👨‍🏫</div><div class="name">المعلّم</div>`;
   textBox.innerHTML=
-    `${p.story(a,b)}
-    كم المجموع؟ <br>
-    <b>تذكّر: الضرب جمع متكرر.</b>`;
+    `يا ${student} 🌿  
+    لدينا ${ar(a)} مجموعات،  
+    في كل مجموعة ${ar(b)} عناصر.  
+    كم المجموع؟`;
 
   visualBox.innerHTML="";
   for(let i=0;i<a;i++){
     visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
   }
 
-  progress.innerHTML=`أنجزت ${ar(correct)} مسألة 🤍`;
+  progress.innerHTML=
+    `محاولاتك: ${ar(tries)} | أحسنت: ${ar(correct)}`;
 }
 
-/* ===== التحقق ===== */
-function checkAnswer(){
+/* ——— التحقق ——— */
+function check(){
+  tries++;
   if(Number(answer.value)===a*b){
     correct++;
-    index++;
-    if(correct%3===0){
-      showTraining();
-    }else{
-      showEncouragement();
-    }
+    wrong=0;
+
+    // تدرّج
+    if(correct%3===0) level++;
+
+    note.innerHTML=
+      `أحسنت يا ${student} 🌟  
+      الله يرى جهدك ويباركه.  
+      هذا يفرح ${parent}.`;
+    note.classList.remove("hidden");
+
+    setTimeout(nextProblem,1500);
   }else{
-    textBox.innerHTML=
-      `لا بأس يا ${student} 🌷  
-      الخطأ طريق التعلّم.  
-      خذ نفسًا عميقًا، والله مع الصابرين.`;
+    wrong++;
+    if(wrong>=2){
+      help(true);
+    }else{
+      textBox.innerHTML=
+        `لا بأس 🌷  
+        الخطأ مرحلة تعلّم،  
+        خذ نفسًا عميقًا والله معك.`;
+    }
   }
 }
 
-/* ===== تشجيع ===== */
-function showEncouragement(){
-  textBox.innerHTML=
-    `أحسنت يا ${student} 🌟  
-    محاولتك عبادة جميلة،  
-    وهذا يفرح ${parent}.`;
-  setTimeout(showProblem,1500);
-}
+/* ——— مساعدة ذكية ——— */
+function help(force){
+  note.classList.remove("hidden");
+  note.innerHTML=
+    `نعدّ بهدوء ✏️  
+    ${ar(a)} × ${ar(b)}  
+    جرّب أن تجمع ${ar(b)}  
+    ${ar(a)} مرات في دفترك.`;
 
-/* ===== تدريب عملي ===== */
-function showTraining(){
-  textBox.innerHTML=
-    `تدريب عملي ✏️  
-    اكتب في دفترك:  
-    ${ar(a)} × ${ar(b)} = ؟  
-    واطلب من ${parent} أن يراك ويشجّعك 🤍`;
-  progress.innerHTML="استراحة تعلّم لطيفة 🌿";
-}
-
-/* ===== مساعدة ===== */
-function helpMe(){
-  helperBox.classList.remove("hidden");
-  helperBox.innerHTML=
-    `لدينا ${ar(a)} مجموعات،  
-    في كل مجموعة ${ar(b)} عناصر.  
-    عدّ بهدوء، الله يراك.`;
+  if(force){
+    charBox.innerHTML=`<div class="avatar">👩‍👦</div><div class="name">${parent}</div>`;
+  }
 }
 </script>
 
