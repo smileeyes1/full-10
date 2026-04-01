@@ -127,7 +127,7 @@ button:disabled{
 </div>
 
 <script>
-/* ===== دعم الأرقام العربية ===== */
+/* ===== تحويل الأرقام إلى العربية ===== */
 function ar(n){
   return n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
 }
@@ -163,14 +163,14 @@ function speak(text){
   speechSynthesis.speak(u);
 }
 
-/* ===== بيانات ===== */
+/* ===== بيانات الطالب ===== */
 let student="",parent="";
 let level=1;
 let correct=0,wrong=0,total=0;
 let a=0,b=0;
 const MAX_LEVEL=3;
 
-/* ===== عناصر ===== */
+/* ===== عناصر الصفحة ===== */
 const intro=document.getElementById("intro");
 const lesson=document.getElementById("lesson");
 const charBox=document.getElementById("charBox");
@@ -181,7 +181,7 @@ const answer=document.getElementById("answer");
 const progress=document.getElementById("progress");
 const checkBtn=document.getElementById("checkBtn");
 
-/* ===== بدء ===== */
+/* ===== بدء الدرس ===== */
 function startLesson(){
   student=document.getElementById("studentName").value||"بطلنا";
   parent=document.getElementById("parentName").value||"وليّه";
@@ -190,7 +190,7 @@ function startLesson(){
   nextProblem();
 }
 
-/* ===== توليد ===== */
+/* ===== توليد المسائل ===== */
 function gen(){
   if(level===1){
     a=2+Math.floor(Math.random()*2);
@@ -206,7 +206,7 @@ function gen(){
   }
 }
 
-/* ===== مسألة ===== */
+/* ===== مسألة جديدة ===== */
 function nextProblem(){
   note.classList.add("hidden");
   answer.value="";
@@ -224,13 +224,14 @@ function nextProblem(){
   for(let i=0;i<a;i++){
     visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
   }
+
   progress.innerText=`محاولاتك: ${ar(total)} | الصحيح: ${ar(correct)}`;
 }
 
-/* ===== تحقق ===== */
+/* ===== التحقق من الإجابة ===== */
 function check(){
   const val=Number(answer.value);
-  if(!Number.isInteger(val)) return;
+  if(!Number.isInteger(val))return;
 
   checkBtn.disabled=true;
   total++;
@@ -238,7 +239,6 @@ function check(){
   if(val===a*b){
     correct++;
     wrong=0;
-
     if(correct%5===0 && level<MAX_LEVEL) level++;
 
     const t=`أحسنت يا ${student} 🌟
@@ -252,14 +252,14 @@ function check(){
       checkBtn.disabled=false;
       nextProblem();
     },1800);
-
-  }else{
+  }
+  else{
     wrong++;
     const t=wrong>=2
-    ?`لا بأس 🌷
+      ?`لا بأس 🌷
 سأشرح لك بهدوء،
 والله مع الصابرين.`
-    :`حاول مرة أخرى بهدوء،
+      :`حاول مرة أخرى بهدوء،
 وأنا معك.`;
     textBox.innerText=t;
     speak(t);
