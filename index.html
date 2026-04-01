@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>رحلة التعلّم – الضرب بالقصص</title>
+<title>رحلة التعلّم – درس الضرب</title>
 
 <style>
 body{
@@ -11,7 +11,7 @@ body{
   margin:0;
   color:#1b5e20;
 }
-.container{max-width:600px;margin:auto;padding:16px}
+.container{max-width:620px;margin:auto;padding:16px}
 .card{
   background:#ffffff;
   border-radius:18px;
@@ -45,24 +45,21 @@ button{
   margin-top:8px;
 }
 .secondary{background:#1b5e20}
-.hidden{display:none}
 .note{
   background:#fff8e1;
   padding:12px;
   border-radius:12px;
   margin-top:10px;
 }
-.progress{
-  font-size:14px;
-  margin-top:8px;
-  color:#2e7d32;
-}
+.progress{font-size:14px;margin-top:6px}
+.hidden{display:none}
 </style>
 </head>
 
 <body>
 <div class="container">
 
+<!-- المقدمة -->
 <div id="intro" class="card">
   <div class="character">
     <div class="avatar">🧔🏻‍♂️</div>
@@ -70,9 +67,8 @@ button{
   </div>
   <div class="speech">
     بسم الله 🌿  
-    سنتعلّم اليوم خطوة خطوة،  
-    والهدوء والصبر طريق النجاح.  
-    <b>محاولتك عبادة جميلة.</b>
+    هذا درس كامل، نأخذه بهدوء.  
+    <b>محاولتك عبادة جميلة، والله معك.</b>
   </div>
 
   <p>اسم الطالب:</p>
@@ -81,9 +77,11 @@ button{
   <p>اسم ولي الأمر:</p>
   <input id="parentName">
 
+  <button onclick="enableSound()">📢 تفعيل الصوت للدرس</button>
   <button onclick="startLesson()">ابدأ الدرس 🤍</button>
 </div>
 
+<!-- الدرس -->
 <div id="lesson" class="card hidden">
   <div class="character" id="charBox"></div>
   <div class="speech" id="textBox"></div>
@@ -96,119 +94,130 @@ button{
   <button class="secondary" onclick="help()">أحتاج مساعدة</button>
 
   <div id="note" class="note hidden"></div>
-  <div class="progress" id="progress"></div>
+  <div id="progress" class="progress"></div>
 </div>
 
 </div>
 
 <script>
-/* ——— بيانات الطالب ——— */
+/* ========= الصوت (إصلاح احترافي) ========= */
+let soundEnabled=false;
+let voice=null;
+
+function enableSound(){
+  if(!('speechSynthesis'in window)){
+    alert("الصوت غير مدعوم في هذا المتصفح");
+    return;
+  }
+  soundEnabled=true;
+  loadVoice();
+  alert("✅ تم تفعيل الصوت، سيبقى يعمل طوال الدرس");
+}
+
+function loadVoice(){
+  const voices=window.speechSynthesis.getVoices();
+  voice=voices.find(v=>v.lang.startsWith("ar"))||null;
+}
+speechSynthesis.onvoiceschanged=loadVoice;
+
+function speak(text){
+  if(!soundEnabled) return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  if(voice) u.voice=voice;
+  u.lang="ar-SA";
+  u.rate=0.9;
+  speechSynthesis.speak(u);
+}
+
+/* ========= بيانات ========= */
 let student="", parent="";
-
-/* ——— تتبع الأداء ——— */
-let level=1;
-let correct=0;
-let wrong=0;
-let tries=0;
-
-/* ——— المسألة الحالية ——— */
+let level=1, correct=0, wrong=0, total=0;
 let a=0,b=0;
 
-/* ——— عناصر ——— */
+/* ========= عناصر ========= */
 const intro=document.getElementById("intro");
 const lesson=document.getElementById("lesson");
 const charBox=document.getElementById("charBox");
 const textBox=document.getElementById("textBox");
 const visualBox=document.getElementById("visualBox");
-const answer=document.getElementById("answer");
 const note=document.getElementById("note");
+const answer=document.getElementById("answer");
 const progress=document.getElementById("progress");
 
-/* ——— أرقام عربية ——— */
-function ar(n){
-  return n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
-}
+/* ========= أرقام عربية ========= */
+function ar(n){return n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);}
 
-/* ——— بدء ——— */
+/* ========= بدء ========= */
 function startLesson(){
   student=document.getElementById("studentName").value||"بطلنا";
   parent=document.getElementById("parentName").value||"وليّه";
   intro.classList.add("hidden");
   lesson.classList.remove("hidden");
-  nextProblem();
+  next();
 }
 
-/* ——— إنشاء مسألة حسب المستوى ——— */
-function generate(){
-  if(level===1){ a=2+Math.floor(Math.random()*2); b=1+Math.floor(Math.random()*2); }
-  if(level===2){ a=3+Math.floor(Math.random()*2); b=2+Math.floor(Math.random()*2); }
-  if(level>=3){ a=4+Math.floor(Math.random()*2); b=3+Math.floor(Math.random()*2); }
+/* ========= توليد حسب المستوى ========= */
+function gen(){
+  if(level===1){a=2+Math.random()*2|0; b=1+Math.random()*2|0;}
+  if(level===2){a=3+Math.random()*2|0; b=2+Math.random()*2|0;}
+  if(level>=3){a=4+Math.random()*2|0; b=3+Math.random()*2|0;}
 }
 
-/* ——— عرض مسألة ——— */
-function nextProblem(){
+/* ========= مسألة ========= */
+function next(){
   note.classList.add("hidden");
   answer.value="";
-  generate();
-
+  gen();
   charBox.innerHTML=`<div class="avatar">👨‍🏫</div><div class="name">المعلّم</div>`;
-  textBox.innerHTML=
-    `يا ${student} 🌿  
-    لدينا ${ar(a)} مجموعات،  
-    في كل مجموعة ${ar(b)} عناصر.  
-    كم المجموع؟`;
+  const text=`يا ${student} 🌿
+لدينا ${ar(a)} مجموعات،
+في كل مجموعة ${ar(b)} عناصر.
+كم المجموع؟`;
+  textBox.innerText=text;
+  speak(text);
 
   visualBox.innerHTML="";
-  for(let i=0;i<a;i++){
-    visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
-  }
+  for(let i=0;i<a;i++) visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
 
-  progress.innerHTML=
-    `محاولاتك: ${ar(tries)} | أحسنت: ${ar(correct)}`;
+  progress.innerText=`مسائلك: ${ar(total)} | الصحيح: ${ar(correct)}`;
 }
 
-/* ——— التحقق ——— */
+/* ========= تحقق ========= */
 function check(){
-  tries++;
+  total++;
   if(Number(answer.value)===a*b){
-    correct++;
-    wrong=0;
-
-    // تدرّج
-    if(correct%3===0) level++;
-
-    note.innerHTML=
-      `أحسنت يا ${student} 🌟  
-      الله يرى جهدك ويباركه.  
-      هذا يفرح ${parent}.`;
+    correct++; wrong=0;
+    if(correct%5===0) level++; // تدرج بطيء (ساعة كاملة)
+    const t=`أحسنت يا ${student}.
+محاولتك عبادة جميلة.
+هذا يفرح ${parent}.`;
+    note.innerText=t;
     note.classList.remove("hidden");
-
-    setTimeout(nextProblem,1500);
+    speak(t);
+    setTimeout(next,1500);
   }else{
     wrong++;
-    if(wrong>=2){
-      help(true);
-    }else{
-      textBox.innerHTML=
-        `لا بأس 🌷  
-        الخطأ مرحلة تعلّم،  
-        خذ نفسًا عميقًا والله معك.`;
-    }
+    const t= wrong>=2 ?
+    `لا بأس.
+سأشرح لك بهدوء،
+والله مع الصابرين.` :
+    `حاول مرة أخرى،
+وأنا معك.`;
+    textBox.innerText=t;
+    speak(t);
   }
 }
 
-/* ——— مساعدة ذكية ——— */
-function help(force){
+/* ========= مساعدة ========= */
+function help(){
+  const t=`نعدّ بهدوء:
+${ar(a)} مجموعات،
+في كل مجموعة ${ar(b)}.
+اكتب ذلك في دفترك ✏️`;
+  note.innerText=t;
   note.classList.remove("hidden");
-  note.innerHTML=
-    `نعدّ بهدوء ✏️  
-    ${ar(a)} × ${ar(b)}  
-    جرّب أن تجمع ${ar(b)}  
-    ${ar(a)} مرات في دفترك.`;
-
-  if(force){
-    charBox.innerHTML=`<div class="avatar">👩‍👦</div><div class="name">${parent}</div>`;
-  }
+  speak(t);
 }
 </script>
 
