@@ -2,24 +2,32 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>رحلة التعلّم – درس الضرب</title>
+<title>رحلة البطل الأمين – درس الضرب</title>
 
 <style>
 body{
-  font-family:"Tajawal",Arial;
+  font-family:"Tajawal",Arial, sans-serif;
   background:#eef7ee;
   margin:0;
   color:#1b5e20;
 }
-.container{max-width:620px;margin:auto;padding:16px}
+.container{
+  max-width:640px;
+  margin:auto;
+  padding:16px;
+}
 .card{
-  background:#ffffff;
+  background:#fff;
   border-radius:18px;
   padding:18px;
   margin-top:14px;
   box-shadow:0 4px 10px rgba(0,0,0,.1);
 }
-.character{display:flex;gap:10px;align-items:center}
+.character{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
 .avatar{font-size:36px}
 .name{font-weight:bold}
 .speech{
@@ -28,12 +36,17 @@ body{
   border-radius:14px;
   line-height:1.9;
 }
-.visual{text-align:center;font-size:26px;margin:10px 0}
+.visual{
+  text-align:center;
+  font-size:26px;
+  margin:10px 0;
+}
 input{
   width:100%;
   font-size:22px;
   text-align:center;
-  padding:6px;
+  padding:8px;
+  margin-top:6px;
 }
 button{
   padding:10px 16px;
@@ -51,7 +64,11 @@ button{
   border-radius:12px;
   margin-top:10px;
 }
-.progress{font-size:14px;margin-top:6px}
+.progress{
+  font-size:14px;
+  margin-top:8px;
+  color:#2e7d32;
+}
 .hidden{display:none}
 </style>
 </head>
@@ -67,8 +84,9 @@ button{
   </div>
   <div class="speech">
     بسم الله 🌿  
-    هذا درس كامل، نأخذه بهدوء.  
-    <b>محاولتك عبادة جميلة، والله معك.</b>
+    سنتعلّم اليوم خطوة خطوة،  
+    بلا استعجال ولا توبيخ.  
+    <b>محاولتك عبادة جميلة، والله مع الصابرين.</b>
   </div>
 
   <p>اسم الطالب:</p>
@@ -83,42 +101,44 @@ button{
 
 <!-- الدرس -->
 <div id="lesson" class="card hidden">
+
   <div class="character" id="charBox"></div>
   <div class="speech" id="textBox"></div>
 
   <div class="visual" id="visualBox"></div>
 
-  <input id="answer" placeholder="اكتب الناتج">
+  <input id="answer" placeholder="اكتب الناتج هنا">
 
   <button onclick="check()">أفكّر بهدوء</button>
   <button class="secondary" onclick="help()">أحتاج مساعدة</button>
 
   <div id="note" class="note hidden"></div>
   <div id="progress" class="progress"></div>
+
 </div>
 
 </div>
 
 <script>
-/* ========= الصوت (إصلاح احترافي) ========= */
+/* ================= الصوت (إصلاح نهائي) ================= */
 let soundEnabled=false;
 let voice=null;
 
 function enableSound(){
-  if(!('speechSynthesis'in window)){
+  if(!('speechSynthesis' in window)){
     alert("الصوت غير مدعوم في هذا المتصفح");
     return;
   }
   soundEnabled=true;
-  loadVoice();
-  alert("✅ تم تفعيل الصوت، سيبقى يعمل طوال الدرس");
+  loadVoices();
+  alert("تم تفعيل الصوت ✅");
 }
 
-function loadVoice(){
-  const voices=window.speechSynthesis.getVoices();
+function loadVoices(){
+  const voices=speechSynthesis.getVoices();
   voice=voices.find(v=>v.lang.startsWith("ar"))||null;
 }
-speechSynthesis.onvoiceschanged=loadVoice;
+speechSynthesis.onvoiceschanged=loadVoices;
 
 function speak(text){
   if(!soundEnabled) return;
@@ -130,91 +150,125 @@ function speak(text){
   speechSynthesis.speak(u);
 }
 
-/* ========= بيانات ========= */
+/* ================= بيانات الطالب ================= */
 let student="", parent="";
-let level=1, correct=0, wrong=0, total=0;
-let a=0,b=0;
+let level=1;
+let correct=0;
+let wrong=0;
+let total=0;
 
-/* ========= عناصر ========= */
+/* ================= المسألة ================= */
+let a=0, b=0;
+
+/* ================= عناصر ================= */
 const intro=document.getElementById("intro");
 const lesson=document.getElementById("lesson");
 const charBox=document.getElementById("charBox");
 const textBox=document.getElementById("textBox");
 const visualBox=document.getElementById("visualBox");
-const note=document.getElementById("note");
 const answer=document.getElementById("answer");
+const note=document.getElementById("note");
 const progress=document.getElementById("progress");
 
-/* ========= أرقام عربية ========= */
-function ar(n){return n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);}
+/* ================= أرقام عربية ================= */
+function ar(n){
+  return n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
+}
 
-/* ========= بدء ========= */
+/* ================= بدء الدرس ================= */
 function startLesson(){
   student=document.getElementById("studentName").value||"بطلنا";
   parent=document.getElementById("parentName").value||"وليّه";
   intro.classList.add("hidden");
   lesson.classList.remove("hidden");
-  next();
+  nextProblem();
 }
 
-/* ========= توليد حسب المستوى ========= */
-function gen(){
-  if(level===1){a=2+Math.random()*2|0; b=1+Math.random()*2|0;}
-  if(level===2){a=3+Math.random()*2|0; b=2+Math.random()*2|0;}
-  if(level>=3){a=4+Math.random()*2|0; b=3+Math.random()*2|0;}
+/* ================= توليد تدريجي ================= */
+function generateProblem(){
+  if(level===1){
+    a=2+Math.floor(Math.random()*2); 
+    b=1+Math.floor(Math.random()*2);
+  }else if(level===2){
+    a=3+Math.floor(Math.random()*2);
+    b=2+Math.floor(Math.random()*2);
+  }else{
+    a=4+Math.floor(Math.random()*2);
+    b=3+Math.floor(Math.random()*2);
+  }
 }
 
-/* ========= مسألة ========= */
-function next(){
+/* ================= عرض مسألة ================= */
+function nextProblem(){
   note.classList.add("hidden");
   answer.value="";
-  gen();
-  charBox.innerHTML=`<div class="avatar">👨‍🏫</div><div class="name">المعلّم</div>`;
-  const text=`يا ${student} 🌿
+  generateProblem();
+
+  charBox.innerHTML=
+    `<div class="avatar">👨‍🏫</div>
+     <div class="name">المعلّم</div>`;
+
+  const text=
+`يا ${student} 🌿
 لدينا ${ar(a)} مجموعات،
 في كل مجموعة ${ar(b)} عناصر.
 كم المجموع؟`;
+
   textBox.innerText=text;
   speak(text);
 
   visualBox.innerHTML="";
-  for(let i=0;i<a;i++) visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
+  for(let i=0;i<a;i++){
+    visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
+  }
 
-  progress.innerText=`مسائلك: ${ar(total)} | الصحيح: ${ar(correct)}`;
+  progress.innerText=
+    `عدد المحاولات: ${ar(total)} | الإجابات الصحيحة: ${ar(correct)}`;
 }
 
-/* ========= تحقق ========= */
+/* ================= تحقق ================= */
 function check(){
   total++;
   if(Number(answer.value)===a*b){
-    correct++; wrong=0;
-    if(correct%5===0) level++; // تدرج بطيء (ساعة كاملة)
-    const t=`أحسنت يا ${student}.
-محاولتك عبادة جميلة.
-هذا يفرح ${parent}.`;
+    correct++;
+    wrong=0;
+
+    if(correct%5===0) level++; // تدرّج بطيء (ساعة كاملة)
+
+    const t=
+`أحسنت يا ${student} 🌟
+محاولتك عبادة جميلة،
+وهذا يفرح ${parent}.`;
+
     note.innerText=t;
     note.classList.remove("hidden");
     speak(t);
-    setTimeout(next,1500);
+
+    setTimeout(nextProblem,1800);
   }else{
     wrong++;
-    const t= wrong>=2 ?
-    `لا بأس.
+    const t =
+      wrong>=2
+      ? `لا بأس 🌷
 سأشرح لك بهدوء،
-والله مع الصابرين.` :
-    `حاول مرة أخرى،
+والله مع الصابرين.`
+      : `حاول مرة أخرى بهدوء،
 وأنا معك.`;
+
     textBox.innerText=t;
     speak(t);
   }
 }
 
-/* ========= مساعدة ========= */
+/* ================= مساعدة ================= */
 function help(){
-  const t=`نعدّ بهدوء:
+  const t=
+`نعدّ بهدوء ✏️
 ${ar(a)} مجموعات،
 في كل مجموعة ${ar(b)}.
-اكتب ذلك في دفترك ✏️`;
+جرّب الجمع في دفترك،
+واطلب من ${parent} أن يشجّعك 🤍`;
+
   note.innerText=t;
   note.classList.remove("hidden");
   speak(t);
