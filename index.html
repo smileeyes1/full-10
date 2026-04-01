@@ -1,253 +1,275 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<title>حصة كاملة – رحلة الضرب</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<title>حصة احترافية – رحلة الضرب</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-  body{font-family:"Tajawal",Arial;margin:0;background:#e8f5e9;color:#1b5e20}
-  .container{max-width:600px;margin:auto;padding:14px}
-  .card{background:#fff;border-radius:18px;padding:16px;margin-top:12px;box-shadow:0 4px 10px rgba(0,0,0,.1)}
-  .row{display:flex;gap:8px;flex-wrap:wrap}
-  .topbar{position:sticky;top:0;z-index:9;background:#1b5e20;color:#fff;border-radius:14px;padding:8px;display:flex;gap:8px;align-items:center;justify-content:space-between}
-  .topbar .row{gap:6px}
-  button{padding:8px 14px;font-size:15px;border-radius:14px;border:none;background:#43a047;color:#fff}
-  button.secondary{background:#2e7d32}
-  button.ghost{background:#66bb6a}
-  button.disabled{opacity:.5}
-  input{width:100%;font-size:20px;text-align:center;padding:8px;border-radius:12px;border:1px solid #c8e6c9}
-  .character{display:flex;gap:10px;align-items:center}
-  .avatar{font-size:38px}
-  .name{font-weight:bold}
-  .speech{background:#e0f2f1;padding:14px;border-radius:14px;line-height:1.8}
-  .visual{text-align:center;font-size:26px;margin:10px 0}
-  .helper{background:#fff8e1;padding:12px;border-radius:12px;display:none}
-  .hidden{display:none}
-  .timer{font-size:13px;opacity:.9}
+body{
+  font-family:"Tajawal",Arial;
+  margin:0;
+  background:#eef6ee;
+  color:#1b5e20;
+}
+.container{max-width:650px;margin:auto;padding:12px}
+.card{
+  background:#fff;border-radius:20px;padding:18px;margin-top:12px;
+  box-shadow:0 6px 14px rgba(0,0,0,.1)
+}
+.topbar{
+  position:sticky;top:0;z-index:10;
+  background:#1b5e20;color:#fff;
+  padding:10px;border-radius:18px;
+  display:flex;justify-content:space-between;align-items:center
+}
+.topbar button{
+  background:#43a047;border:none;border-radius:14px;
+  color:white;padding:6px 12px;font-size:14px
+}
+.character{display:flex;gap:10px;align-items:center}
+.avatar{font-size:42px}
+.name{font-weight:bold}
+.speech{
+  background:#e0f2f1;
+  padding:16px;border-radius:16px;
+  line-height:1.9;font-size:18px
+}
+.visual{text-align:center;font-size:26px;margin:12px 0}
+input{
+  width:100%;font-size:22px;
+  text-align:center;padding:8px;
+  border-radius:14px;border:1px solid #c8e6c9
+}
+button.action{
+  background:#43a047;color:white;
+  padding:10px 18px;font-size:17px;
+  border-radius:16px;border:none;margin-top:8px
+}
+button.disabled{opacity:.5}
+.helper{
+  margin-top:10px;
+  background:#fff8e1;
+  padding:14px;border-radius:14px;
+  display:none
+}
+.hidden{display:none}
+.timer{font-size:13px;opacity:.8}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-  <!-- شريط علوي ثابت -->
-  <div class="topbar">
-    <div class="row">
-      <button class="secondary" onclick="toggleFullscreen()">🖥️ ملء الشاشة</button>
-      <button class="ghost" onclick="toggleSound()">🔈 الصوت</button>
-    </div>
-    <div class="timer" id="timerLabel">جاهز</div>
+<!-- شريط التحكم -->
+<div class="topbar">
+  <div>
+    <button onclick="toggleFullscreen()">🖥️ ملء الشاشة</button>
+    <button onclick="toggleSound()">🔈 الصوت</button>
+  </div>
+  <div id="timer" class="timer">جاهزون</div>
+</div>
+
+<!-- المقدمة -->
+<div id="intro" class="card">
+  <div class="character">
+    <div class="avatar">🧔🏻‍♂️</div>
+    <div class="name">الحكيم إبراهيم</div>
+  </div>
+  <div class="speech">
+    يا بطل 🌿  
+    يسعدني أن نتعلّم معًا اليوم.  
+    <b>التعلّم عبادة، وكل محاولة يراها الله.</b>
   </div>
 
-  <!-- التهيئة -->
-  <div id="intro" class="card">
-    <div class="character">
-      <div class="avatar">🧔🏻‍♂️</div>
-      <div class="name">الحكيم إبراهيم</div>
-    </div>
-    <div class="speech">
-      يا بطل 🌿  
-      التعلّم عبادة، وكل محاولة تقرّبك خطوة.  
-      <b>الله معك ومع الصابرين.</b>
-    </div>
-    <p>اسم الطالب:</p>
-    <input id="studentName" placeholder="اكتب اسمك">
-    <p>اسم ولي الأمر:</p>
-    <input id="parentName" placeholder="اسم ولي الأمر">
-    <button onclick="startLesson()">ابدأ الحصة 🤍</button>
-  </div>
+  <p>اسم الطالب:</p>
+  <input id="studentName">
 
-  <!-- الدرس -->
-  <div id="lesson" class="card hidden">
-    <div class="character" id="characterBox"></div>
-    <div id="storyText" class="speech"></div>
+  <p>اسم ولي الأمر:</p>
+  <input id="parentName">
 
-    <div class="visual" id="visual"></div>
+  <button class="action" onclick="startLesson()">ابدأ الحصة 🤍</button>
+</div>
 
-    <input id="answer" class="hidden" inputmode="numeric" placeholder="كم الناتج؟ بالأرقام العربية">
+<!-- الحصة -->
+<div id="lesson" class="card hidden">
+  <div class="character" id="characterBox"></div>
+  <div id="text" class="speech"></div>
 
-    <div class="row">
-      <button id="nextBtn" class="disabled" onclick="next()">التالي ⏭️</button>
-      <button onclick="help()">أنا محتار 🤍</button>
-      <button onclick="speak()">🗣️ استمع</button>
-    </div>
+  <div id="visual" class="visual"></div>
 
-    <div class="helper" id="helper"></div>
-  </div>
+  <input id="answer" class="hidden" inputmode="numeric" placeholder="كم الناتج؟ بالأرقام العربية">
+
+  <button id="nextBtn" class="action disabled" onclick="nextStep()">التالي ⏭️</button>
+  <button class="action" onclick="helpMe()">أنا محتار</button>
+  <button class="action" onclick="speak()">🗣️ استمع</button>
+
+  <div id="helper" class="helper"></div>
+</div>
 
 </div>
 
 <script>
-/* ===== متغيرات عامة ===== */
+/* المتغيرات */
 let student="", parent="";
-let stage=0;         // 0 تهيئة، 1 شرح، 2 سؤال، 3 دعم/تشجيع، 4 نشاط عملي، 5 خَتم
+let stage=0; // مراحل الحصة
 let a=0,b=0;
-let waitMs=10000;    // ١٠ ثوانٍ
-let startWait=0;
-let presses=0;
 let soundOn=true;
+let waitTime=10000;
+let startWait=0,presses=0;
 
-/* ===== عناصر ===== */
-const intro=document.getElementById('intro');
-const lesson=document.getElementById('lesson');
-const storyText=document.getElementById('storyText');
-const visual=document.getElementById('visual');
-const answer=document.getElementById('answer');
-const helper=document.getElementById('helper');
-const nextBtn=document.getElementById('nextBtn');
-const timerLabel=document.getElementById('timerLabel');
-const characterBox=document.getElementById('characterBox');
-const studentName=document.getElementById('studentName');
-const parentName=document.getElementById('parentName');
+/* عناصر */
+const intro=document.getElementById("intro");
+const lesson=document.getElementById("lesson");
+const text=document.getElementById("text");
+const visual=document.getElementById("visual");
+const answer=document.getElementById("answer");
+const helper=document.getElementById("helper");
+const nextBtn=document.getElementById("nextBtn");
+const timer=document.getElementById("timer");
+const characterBox=document.getElementById("characterBox");
 
-/* ===== أدوات ===== */
+/* أدوات */
 const eastern=n=>n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
-const setChar=(icon,name)=>characterBox.innerHTML=`<div class="avatar">${icon}</div><div class="name">${name}</div>`;
+const setChar=(e,n)=>characterBox.innerHTML=`<div class="avatar">${e}</div><div class="name">${n}</div>`;
 
-/* ===== الصوت ===== */
+/* صوت */
 function speak(){
-  if(!soundOn||!('speechSynthesis'in window))return;
+  if(!soundOn||!window.speechSynthesis)return;
   speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(storyText.innerText);
-  u.lang='ar-SA'; u.rate=.9; speechSynthesis.speak(u);
+  let u=new SpeechSynthesisUtterance(text.innerText);
+  u.lang="ar-SA";u.rate=.9;
+  speechSynthesis.speak(u);
 }
-function toggleSound(){ soundOn=!soundOn; if(!soundOn) speechSynthesis.cancel(); }
+function toggleSound(){soundOn=!soundOn;if(!soundOn)speechSynthesis.cancel();}
 
-/* ===== ملء الشاشة ===== */
+/* ملء شاشة */
 function toggleFullscreen(){
-  if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+  if(!document.fullscreenElement)document.documentElement.requestFullscreen();
   else document.exitFullscreen();
 }
 
-/* ===== بدء الحصة ===== */
-function startLesson(){
-  student=studentName.value||"بطلنا";
-  parent=parentName.value||"ولي أمره";
-  intro.classList.add('hidden');
-  lesson.classList.remove('hidden');
-  stage=0; render();
-}
-
-/* ===== مؤقّت زر التالي ===== */
+/* مؤقّت */
 function lockNext(){
-  nextBtn.classList.add('disabled');
-  startWait=Date.now(); presses=0;
-  const t=setInterval(()=>{
-    const remain=Math.max(0, waitMs-(Date.now()-startWait));
-    timerLabel.textContent= remain>0 ? `انتظر ${Math.ceil(remain/1000)} ثوانٍ … الله مع الصابرين` : 'يمكنك المتابعة الآن';
-    if(remain<=0){ clearInterval(t); nextBtn.classList.remove('disabled'); }
+  nextBtn.classList.add("disabled");
+  presses=0;startWait=Date.now();
+  let i=setInterval(()=>{
+    let r=Math.max(0,waitTime-(Date.now()-startWait));
+    timer.innerText=r>0?`انتظر ${Math.ceil(r/1000)} ثوانٍ… الله مع الصابرين`:`يمكن المتابعة`;
+    if(r<=0){clearInterval(i);nextBtn.classList.remove("disabled");}
   },500);
 }
 
-/* ===== محتوى المراحل ===== */
+/* بدء */
+function startLesson(){
+  student=document.getElementById("studentName").value||"بطلنا";
+  parent=document.getElementById("parentName").value||"ولي أمره";
+  intro.classList.add("hidden");
+  lesson.classList.remove("hidden");
+  stage=0;render();
+}
+
+/* عرض المراحل */
 function render(){
-  helper.style.display='none';
-  answer.classList.add('hidden');
-  visual.innerHTML='';
+  helper.style.display="none";
+  visual.innerHTML="";
+  answer.classList.add("hidden");
   setTimeout(speak,200);
 
   if(stage===0){
-    setChar('🧔🏻‍♂️','الحكيم إبراهيم');
-    storyText.innerText=
+    setChar("🧔🏻‍♂️","الحكيم إبراهيم");
+    text.innerText=
 `مرحبًا يا ${student}.
-سنبدأ على مهل.
-لا استعجال، وكل محاولة عبادة جميلة.`;
+نحن هنا لنتعلّم بهدوء.
+لا استعجال، والله معك.`;
     lockNext();
   }
 
   if(stage===1){
-    setChar('👨‍🏫','الشرح الهادئ');
-    storyText.innerText=
+    setChar("👨‍🏫","شرح");
+    text.innerText=
 `الضرب يعني جمعًا متكررًا.
-لدينا مجموعات، وفي كل مجموعة عدد متساوٍ.
-سنعدّ معًا بهدوء.`;
-    visual.innerHTML='🔢 🔢 🔢';
+مجموعات متساوية.
+سنعدّ معًا واحدة واحدة.`;
+    visual.innerHTML="🔢 🔢 🔢";
     lockNext();
   }
 
   if(stage===2){
-    setChar('🐑','الراعي الصادق');
-    a=3; b=2;
-    storyText.innerText=
+    setChar("🐑","الراعي الأمين");
+    a=3;b=2;
+    text.innerText=
 `لدى الراعي ${eastern(a)} حظائر.
 في كل حظيرة ${eastern(b)} خراف.
 كم خروفًا لديه؟`;
-    for(let i=0;i<a;i++) visual.innerHTML+="🐑 ".repeat(b)+"<br>";
-    answer.classList.remove('hidden');
+    for(let i=0;i<a;i++)visual.innerHTML+="🐑 ".repeat(b)+"<br>";
+    answer.classList.remove("hidden");
     lockNext();
   }
 
   if(stage===3){
-    setChar('⭐','تشجيع');
-    storyText.innerText=
+    setChar("🌟","تشجيع");
+    text.innerText=
 `أحسنت يا ${student}.
-الله يرى جهدك ويباركه.
-كل محاولة ترفعك درجة.`;
-    visual.innerHTML='🌟 🤍 🌿';
+محاولتك عبادة جميلة.
+الله يرى جهدك ويباركه.`;
+    visual.innerHTML="🌟 🤍 🌱";
     lockNext();
   }
 
   if(stage===4){
-    setChar('✍️','نشاط عملي');
-    storyText.innerText=
+    setChar("✍️","نشاط عملي");
+    text.innerText=
 `أحضر دفترك.
 ارسم ${eastern(a)} دوائر،
-وفي كل دائرة ضع ${eastern(b)} نقاط.
-حين تنتهي، خذ نفسًا وابتسم.`;
+في كل دائرة ${eastern(b)} نقاط.`;
     lockNext();
   }
 
   if(stage===5){
-    setChar('🤲','خَتم الحصة');
-    storyText.innerText=
+    setChar("🤲","خَتم");
+    text.innerText=
 `بارك الله فيك يا ${student}.
 سيفرح بك ${parent}.
-اللهم زدنا علمًا وطمأنينة.
-إلى لقاءٍ قريب بإذن الله.`;
-    nextBtn.textContent='انتهت الحصة ✅';
-    nextBtn.classList.add('disabled');
-    timerLabel.textContent='تم';
+اللهم زدنا علمًا وطمأنينة.`;
+    nextBtn.textContent="انتهت الحصة ✅";
+    nextBtn.classList.add("disabled");
+    timer.innerText="تم";
   }
 }
 
-/* ===== زر التالي (ذكي) ===== */
-function next(){
-  if(nextBtn.classList.contains('disabled')){
+/* التالي */
+function nextStep(){
+  if(nextBtn.classList.contains("disabled")){
     presses++;
-    helper.style.display='block';
+    helper.style.display="block";
     helper.innerText=
-      presses===1 ? 'تلميح: عدّ ببطء مجموعة مجموعة.'
-    : presses===2 ? 'ملاحظة: الجمع المتكرر هو الضرب.'
-    : presses===3 ? 'مثال: ٢ مجموعات، في كل واحدة ٣ = ٦.'
-    : presses>=4 ? 'نشاط: عدّ بأصابعك بهدوء.'
-    : '';
-    speak();
-    return;
+      presses===1?"تلميح: عدّ بهدوء مجموعة مجموعة."
+      :presses===2?"ملاحظة: الجمع المتكرر هو الضرب."
+      :presses===3?"مثال: ٢ مجموعات × ٣ = ٦."
+      :"خذ نفسًا… الله معك.";
+    speak();return;
   }
 
-  if(stage===2){
-    // تحقق
-    if(Number(answer.value)!==a*b){
-      helper.style.display='block';
-      helper.innerText=
-`لا بأس يا ${student}.
-لنغيّر الطريقة ونعدّ بهدوء،
-والله مع الصابرين.`;
-      speak(); return;
-    }
+  if(stage===2 && Number(answer.value)!==a*b){
+    helper.style.display="block";
+    helper.innerText=
+`لا بأس.
+لنغيّر الطريقة ونعدّ بهدوء.
+الصبر مفتاح الخير.`;
+    speak();return;
   }
 
-  stage=Math.min(5, stage+1);
+  stage++;
   render();
 }
 
-/* ===== مساعدة ===== */
-function help(){
-  helper.style.display='block';
+/* مساعدة */
+function helpMe(){
+  helper.style.display="block";
   helper.innerText=
-`تذكّر:
-لدينا ${eastern(a)} مجموعات،
-في كل مجموعة ${eastern(b)} عناصر.
+`لدينا ${eastern(a)} مجموعات،
+في كل مجموعة ${eastern(b)} عناصر،
 الضرب = جمع متكرر.`;
   speak();
 }
