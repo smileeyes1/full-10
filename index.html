@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>حصة كاملة – رحلة الضرب</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+  body{font-family:"Tajawal",Arial;margin:0;background:#e8f5e9;color:#1b5e20}
+  .container{max-width:600px;margin:auto;padding:14px}
+  .card{background:#fff;border-radius:18px;padding:16px;margin-top:12px;box-shadow:0 4px 10px rgba(0,0,0,.1)}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .topbar{position:sticky;top:0;z-index:9;background:#1b5e20;color:#fff;border-radius:14px;padding:8px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+  .topbar .row{gap:6px}
+  button{padding:8px 14px;font-size:15px;border-radius:14px;border:none;background:#43a047;color:#fff}
+  button.secondary{background:#2e7d32}
+  button.ghost{background:#66bb6a}
+  button.disabled{opacity:.5}
+  input{width:100%;font-size:20px;text-align:center;padding:8px;border-radius:12px;border:1px solid #c8e6c9}
+  .character{display:flex;gap:10px;align-items:center}
+  .avatar{font-size:38px}
+  .name{font-weight:bold}
+  .speech{background:#e0f2f1;padding:14px;border-radius:14px;line-height:1.8}
+  .visual{text-align:center;font-size:26px;margin:10px 0}
+  .helper{background:#fff8e1;padding:12px;border-radius:12px;display:none}
+  .hidden{display:none}
+  .timer{font-size:13px;opacity:.9}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <!-- شريط علوي ثابت -->
+  <div class="topbar">
+    <div class="row">
+      <button class="secondary" onclick="toggleFullscreen()">🖥️ ملء الشاشة</button>
+      <button class="ghost" onclick="toggleSound()">🔈 الصوت</button>
+    </div>
+    <div class="timer" id="timerLabel">جاهز</div>
+  </div>
+
+  <!-- التهيئة -->
+  <div id="intro" class="card">
+    <div class="character">
+      <div class="avatar">🧔🏻‍♂️</div>
+      <div class="name">الحكيم إبراهيم</div>
+    </div>
+    <div class="speech">
+      يا بطل 🌿  
+      التعلّم عبادة، وكل محاولة تقرّبك خطوة.  
+      <b>الله معك ومع الصابرين.</b>
+    </div>
+    <p>اسم الطالب:</p>
+    <input id="studentName" placeholder="اكتب اسمك">
+    <p>اسم ولي الأمر:</p>
+    <input id="parentName" placeholder="اسم ولي الأمر">
+    <button onclick="startLesson()">ابدأ الحصة 🤍</button>
+  </div>
+
+  <!-- الدرس -->
+  <div id="lesson" class="card hidden">
+    <div class="character" id="characterBox"></div>
+    <div id="storyText" class="speech"></div>
+
+    <div class="visual" id="visual"></div>
+
+    <input id="answer" class="hidden" inputmode="numeric" placeholder="كم الناتج؟ بالأرقام العربية">
+
+    <div class="row">
+      <button id="nextBtn" class="disabled" onclick="next()">التالي ⏭️</button>
+      <button onclick="help()">أنا محتار 🤍</button>
+      <button onclick="speak()">🗣️ استمع</button>
+    </div>
+
+    <div class="helper" id="helper"></div>
+  </div>
+
+</div>
+
+<script>
+/* ===== متغيرات عامة ===== */
+let student="", parent="";
+let stage=0;         // 0 تهيئة، 1 شرح، 2 سؤال، 3 دعم/تشجيع، 4 نشاط عملي، 5 خَتم
+let a=0,b=0;
+let waitMs=10000;    // ١٠ ثوانٍ
+let startWait=0;
+let presses=0;
+let soundOn=true;
+
+/* ===== عناصر ===== */
+const intro=document.getElementById('intro');
+const lesson=document.getElementById('lesson');
+const storyText=document.getElementById('storyText');
+const visual=document.getElementById('visual');
+const answer=document.getElementById('answer');
+const helper=document.getElementById('helper');
+const nextBtn=document.getElementById('nextBtn');
+const timerLabel=document.getElementById('timerLabel');
+const characterBox=document.getElementById('characterBox');
+const studentName=document.getElementById('studentName');
+const parentName=document.getElementById('parentName');
+
+/* ===== أدوات ===== */
+const eastern=n=>n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
+const setChar=(icon,name)=>characterBox.innerHTML=`<div class="avatar">${icon}</div><div class="name">${name}</div>`;
+
+/* ===== الصوت ===== */
+function speak(){
+  if(!soundOn||!('speechSynthesis'in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(storyText.innerText);
+  u.lang='ar-SA'; u.rate=.9; speechSynthesis.speak(u);
+}
+function toggleSound(){ soundOn=!soundOn; if(!soundOn) speechSynthesis.cancel(); }
+
+/* ===== ملء الشاشة ===== */
+function toggleFullscreen(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+/* ===== بدء الحصة ===== */
+function startLesson(){
+  student=studentName.value||"بطلنا";
+  parent=parentName.value||"ولي أمره";
+  intro.classList.add('hidden');
+  lesson.classList.remove('hidden');
+  stage=0; render();
+}
+
+/* ===== مؤقّت زر التالي ===== */
+function lockNext(){
+  nextBtn.classList.add('disabled');
+  startWait=Date.now(); presses=0;
+  const t=setInterval(()=>{
+    const remain=Math.max(0, waitMs-(Date.now()-startWait));
+    timerLabel.textContent= remain>0 ? `انتظر ${Math.ceil(remain/1000)} ثوانٍ … الله مع الصابرين` : 'يمكنك المتابعة الآن';
+    if(remain<=0){ clearInterval(t); nextBtn.classList.remove('disabled'); }
+  },500);
+}
+
+/* ===== محتوى المراحل ===== */
+function render(){
+  helper.style.display='none';
+  answer.classList.add('hidden');
+  visual.innerHTML='';
+  setTimeout(speak,200);
+
+  if(stage===0){
+    setChar('🧔🏻‍♂️','الحكيم إبراهيم');
+    storyText.innerText=
+`مرحبًا يا ${student}.
+سنبدأ على مهل.
+لا استعجال، وكل محاولة عبادة جميلة.`;
+    lockNext();
+  }
+
+  if(stage===1){
+    setChar('👨‍🏫','الشرح الهادئ');
+    storyText.innerText=
+`الضرب يعني جمعًا متكررًا.
+لدينا مجموعات، وفي كل مجموعة عدد متساوٍ.
+سنعدّ معًا بهدوء.`;
+    visual.innerHTML='🔢 🔢 🔢';
+    lockNext();
+  }
+
+  if(stage===2){
+    setChar('🐑','الراعي الصادق');
+    a=3; b=2;
+    storyText.innerText=
+`لدى الراعي ${eastern(a)} حظائر.
+في كل حظيرة ${eastern(b)} خراف.
+كم خروفًا لديه؟`;
+    for(let i=0;i<a;i++) visual.innerHTML+="🐑 ".repeat(b)+"<br>";
+    answer.classList.remove('hidden');
+    lockNext();
+  }
+
+  if(stage===3){
+    setChar('⭐','تشجيع');
+    storyText.innerText=
+`أحسنت يا ${student}.
+الله يرى جهدك ويباركه.
+كل محاولة ترفعك درجة.`;
+    visual.innerHTML='🌟 🤍 🌿';
+    lockNext();
+  }
+
+  if(stage===4){
+    setChar('✍️','نشاط عملي');
+    storyText.innerText=
+`أحضر دفترك.
+ارسم ${eastern(a)} دوائر،
+وفي كل دائرة ضع ${eastern(b)} نقاط.
+حين تنتهي، خذ نفسًا وابتسم.`;
+    lockNext();
+  }
+
+  if(stage===5){
+    setChar('🤲','خَتم الحصة');
+    storyText.innerText=
+`بارك الله فيك يا ${student}.
+سيفرح بك ${parent}.
+اللهم زدنا علمًا وطمأنينة.
+إلى لقاءٍ قريب بإذن الله.`;
+    nextBtn.textContent='انتهت الحصة ✅';
+    nextBtn.classList.add('disabled');
+    timerLabel.textContent='تم';
+  }
+}
+
+/* ===== زر التالي (ذكي) ===== */
+function next(){
+  if(nextBtn.classList.contains('disabled')){
+    presses++;
+    helper.style.display='block';
+    helper.innerText=
+      presses===1 ? 'تلميح: عدّ ببطء مجموعة مجموعة.'
+    : presses===2 ? 'ملاحظة: الجمع المتكرر هو الضرب.'
+    : presses===3 ? 'مثال: ٢ مجموعات، في كل واحدة ٣ = ٦.'
+    : presses>=4 ? 'نشاط: عدّ بأصابعك بهدوء.'
+    : '';
+    speak();
+    return;
+  }
+
+  if(stage===2){
+    // تحقق
+    if(Number(answer.value)!==a*b){
+      helper.style.display='block';
+      helper.innerText=
+`لا بأس يا ${student}.
+لنغيّر الطريقة ونعدّ بهدوء،
+والله مع الصابرين.`;
+      speak(); return;
+    }
+  }
+
+  stage=Math.min(5, stage+1);
+  render();
+}
+
+/* ===== مساعدة ===== */
+function help(){
+  helper.style.display='block';
+  helper.innerText=
+`تذكّر:
+لدينا ${eastern(a)} مجموعات،
+في كل مجموعة ${eastern(b)} عناصر.
+الضرب = جمع متكرر.`;
+  speak();
+}
+</script>
+</body>
+</html>
