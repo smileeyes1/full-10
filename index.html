@@ -67,6 +67,8 @@ button:disabled{
   cursor:not-allowed
 }
 .secondary{background:#1b5e20}
+.save{background:#0277bd}
+.fullscreen-btn{background:#2e7d32}
 .note{
   background:#fff8e1;
   padding:12px;
@@ -107,6 +109,8 @@ button:disabled{
 
   <button onclick="enableSound()">🔊 تفعيل الصوت</button>
   <button onclick="startLesson()">ابدأ الدرس 🤍</button>
+  <button class="save" onclick="loadProgress()">📂 استرجاع التقدّم</button>
+  <button class="fullscreen-btn" onclick="toggleFullscreen()">🖥️ ملء الشاشة</button>
 </div>
 
 <!-- الدرس -->
@@ -119,6 +123,8 @@ button:disabled{
 
   <button id="checkBtn" onclick="check()">أفكّر بهدوء</button>
   <button class="secondary" onclick="help()">أحتاج مساعدة</button>
+  <button class="save" onclick="saveProgress()">💾 حفظ التقدّم</button>
+  <button class="fullscreen-btn" onclick="toggleFullscreen()">🖥️ ملء الشاشة</button>
 
   <div id="note" class="note hidden"></div>
   <div id="progress" class="progress"></div>
@@ -127,9 +133,18 @@ button:disabled{
 </div>
 
 <script>
-/* ===== تحويل الأرقام إلى العربية ===== */
+/* ===== أرقام عربية ===== */
 function ar(n){
   return n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
+}
+
+/* ===== ملء الشاشة ===== */
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+  }else{
+    document.exitFullscreen();
+  }
 }
 
 /* ===== الصوت ===== */
@@ -138,24 +153,20 @@ let voice=null;
 
 function enableSound(){
   if(!("speechSynthesis" in window)){
-    alert("الصوت غير مدعوم في هذا المتصفح");
+    alert("الصوت غير مدعوم");
     return;
   }
   soundEnabled=true;
-  speechSynthesis.cancel();
   loadVoices();
   alert("✅ تم تفعيل الصوت");
 }
-
 function loadVoices(){
-  const voices=speechSynthesis.getVoices();
-  voice=voices.find(v=>v.lang.startsWith("ar"))||null;
+  voice=speechSynthesis.getVoices().find(v=>v.lang.startsWith("ar"))||null;
 }
 speechSynthesis.onvoiceschanged=loadVoices;
 
 function speak(text){
   if(!soundEnabled)return;
-  speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   if(voice)u.voice=voice;
   u.lang="ar-SA";
@@ -163,14 +174,42 @@ function speak(text){
   speechSynthesis.speak(u);
 }
 
-/* ===== بيانات الطالب ===== */
+/* ===== البيانات ===== */
 let student="",parent="";
-let level=1;
-let correct=0,wrong=0,total=0;
+let level=1, correct=0, wrong=0, total=0;
 let a=0,b=0;
 const MAX_LEVEL=3;
 
-/* ===== عناصر الصفحة ===== */
+/* ===== حفظ التقدّم ===== */
+function saveProgress(){
+  const data={student,parent,level,correct,total};
+  localStorage.setItem("lessonProgress",JSON.stringify(data));
+  alert("✅ تم حفظ التقدّم");
+}
+
+/* ===== استرجاع التقدّم ===== */
+function loadProgress(){
+  const data=localStorage.getItem("lessonProgress");
+  if(!data){
+    alert("لا يوجد تقدّم محفوظ");
+    return;
+  }
+  const d=JSON.parse(data);
+  student=d.student;
+  parent=d.parent;
+  level=d.level;
+  correct=d.correct;
+  total=d.total;
+
+  document.getElementById("studentName").value=student;
+  document.getElementById("parentName").value=parent;
+
+  intro.classList.add("hidden");
+  lesson.classList.remove("hidden");
+  nextProblem();
+}
+
+/* ===== عناصر ===== */
 const intro=document.getElementById("intro");
 const lesson=document.getElementById("lesson");
 const charBox=document.getElementById("charBox");
@@ -181,7 +220,7 @@ const answer=document.getElementById("answer");
 const progress=document.getElementById("progress");
 const checkBtn=document.getElementById("checkBtn");
 
-/* ===== بدء الدرس ===== */
+/* ===== بدء ===== */
 function startLesson(){
   student=document.getElementById("studentName").value||"بطلنا";
   parent=document.getElementById("parentName").value||"وليّه";
@@ -190,29 +229,18 @@ function startLesson(){
   nextProblem();
 }
 
-/* ===== توليد المسائل ===== */
+/* ===== توليد ===== */
 function gen(){
-  if(level===1){
-    a=2+Math.floor(Math.random()*2);
-    b=1+Math.floor(Math.random()*2);
-  }
-  else if(level===2){
-    a=3+Math.floor(Math.random()*2);
-    b=2+Math.floor(Math.random()*2);
-  }
-  else{
-    a=4+Math.floor(Math.random()*2);
-    b=3+Math.floor(Math.random()*2);
-  }
+  if(level===1){a=2+Math.floor(Math.random()*2);b=1+Math.floor(Math.random()*2);}
+  else if(level===2){a=3+Math.floor(Math.random()*2);b=2+Math.floor(Math.random()*2);}
+  else{a=4+Math.floor(Math.random()*2);b=3+Math.floor(Math.random()*2);}
 }
 
-/* ===== مسألة جديدة ===== */
+/* ===== مسألة ===== */
 function nextProblem(){
   note.classList.add("hidden");
   answer.value="";
   gen();
-
-  charBox.innerHTML=`<div class="avatar">👨‍🏫</div><div class="name">المعلّم</div>`;
   const t=`يا ${student} 🌿
 لدينا ${ar(a)} مجموعات،
 في كل مجموعة ${ar(b)} عناصر.
@@ -221,45 +249,31 @@ function nextProblem(){
   speak(t);
 
   visualBox.innerHTML="";
-  for(let i=0;i<a;i++){
-    visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
-  }
-
+  for(let i=0;i<a;i++) visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
   progress.innerText=`محاولاتك: ${ar(total)} | الصحيح: ${ar(correct)}`;
 }
 
-/* ===== التحقق من الإجابة ===== */
+/* ===== تحقق ===== */
 function check(){
   const val=Number(answer.value);
   if(!Number.isInteger(val))return;
-
   checkBtn.disabled=true;
   total++;
-
   if(val===a*b){
-    correct++;
-    wrong=0;
-    if(correct%5===0 && level<MAX_LEVEL) level++;
-
+    correct++; wrong=0;
+    if(correct%5===0&&level<MAX_LEVEL)level++;
     const t=`أحسنت يا ${student} 🌟
 محاولتك عبادة جميلة،
 وهذا يفرح ${parent}.`;
     note.innerText=t;
     note.classList.remove("hidden");
     speak(t);
-
-    setTimeout(()=>{
-      checkBtn.disabled=false;
-      nextProblem();
-    },1800);
-  }
-  else{
+    setTimeout(()=>{checkBtn.disabled=false;nextProblem();},1800);
+  }else{
     wrong++;
-    const t=wrong>=2
-      ?`لا بأس 🌷
+    const t=wrong>=2?`لا بأس 🌷
 سأشرح لك بهدوء،
-والله مع الصابرين.`
-      :`حاول مرة أخرى بهدوء،
+والله مع الصابرين.`:`حاول مرة أخرى بهدوء،
 وأنا معك.`;
     textBox.innerText=t;
     speak(t);
