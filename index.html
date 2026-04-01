@@ -3,31 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <title>رحلة البطل الأمين – درس الضرب</title>
+
 <style>
+*{box-sizing:border-box}
 body{
-  font-family:"Tajawal",Arial;
+  font-family:"Tajawal",Arial,sans-serif;
   background:#eef7ee;
   margin:0;
   color:#1b5e20;
 }
-.container{max-width:650px;margin:auto;padding:16px}
-.card{
-  background:#fff;border-radius:18px;padding:18px;
-  margin-top:14px;box-shadow:0 4px 10px rgba(0,0,0,.1)
+.container{
+  max-width:650px;
+  margin:auto;
+  padding:16px
 }
-.character{display:flex;gap:10px;align-items:center}
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:18px;
+  margin-top:14px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08)
+}
+.character{
+  display:flex;
+  gap:10px;
+  align-items:center
+}
 .avatar{font-size:36px}
 .name{font-weight:bold}
-.speech{background:#e0f2f1;padding:14px;border-radius:14px;line-height:1.9}
-.visual{text-align:center;font-size:26px;margin:10px 0}
-input{width:100%;font-size:22px;text-align:center;padding:8px}
+.speech{
+  background:#e0f2f1;
+  padding:14px;
+  border-radius:14px;
+  line-height:1.9;
+  white-space:pre-line
+}
+.visual{
+  text-align:center;
+  font-size:26px;
+  margin:10px 0;
+  line-height:1.6
+}
+input{
+  width:100%;
+  font-size:22px;
+  text-align:center;
+  padding:8px;
+  border-radius:12px;
+  border:1px solid #c8e6c9
+}
 button{
-  padding:10px 16px;font-size:16px;border-radius:14px;
-  border:none;background:#43a047;color:white;margin-top:8px
+  padding:10px 16px;
+  font-size:16px;
+  border-radius:14px;
+  border:none;
+  background:#43a047;
+  color:white;
+  margin-top:8px;
+  cursor:pointer
+}
+button:disabled{
+  opacity:.6;
+  cursor:not-allowed
 }
 .secondary{background:#1b5e20}
-.note{background:#fff8e1;padding:12px;border-radius:12px;margin-top:10px}
-.progress{font-size:14px;margin-top:8px;color:#2e7d32}
+.note{
+  background:#fff8e1;
+  padding:12px;
+  border-radius:12px;
+  margin-top:10px;
+  white-space:pre-line
+}
+.progress{
+  font-size:14px;
+  margin-top:8px;
+  color:#2e7d32
+}
 .hidden{display:none}
 </style>
 </head>
@@ -42,10 +93,10 @@ button{
     <div class="name">المعلّم</div>
   </div>
   <div class="speech">
-    بسم الله 🌿  
-    هذا درس هادئ متدرّج،  
-    لا نستعجل فيه، ولا نوبّخ.  
-    <b>محاولتك عبادة جميلة، والله مع الصابرين.</b>
+بسم الله 🌿
+هذا درس هادئ متدرّج،
+لا نستعجل فيه، ولا نوبّخ.
+<b>محاولتك عبادة جميلة، والله مع الصابرين.</b>
   </div>
 
   <p>اسم الطالب:</p>
@@ -62,12 +113,11 @@ button{
 <div id="lesson" class="card hidden">
   <div class="character" id="charBox"></div>
   <div class="speech" id="textBox"></div>
-
   <div class="visual" id="visualBox"></div>
 
-  <input id="answer" placeholder="اكتب الناتج هنا">
+  <input id="answer" inputmode="numeric" placeholder="اكتب الناتج هنا">
 
-  <button onclick="check()">أفكّر بهدوء</button>
+  <button id="checkBtn" onclick="check()">أفكّر بهدوء</button>
   <button class="secondary" onclick="help()">أحتاج مساعدة</button>
 
   <div id="note" class="note hidden"></div>
@@ -77,18 +127,24 @@ button{
 </div>
 
 <script>
-/* ===== الصوت (إصلاح نهائي) ===== */
+/* ===== دعم الأرقام العربية ===== */
+function ar(n){
+  return n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
+}
+
+/* ===== الصوت ===== */
 let soundEnabled=false;
 let voice=null;
 
 function enableSound(){
-  if(!('speechSynthesis'in window)){
+  if(!("speechSynthesis" in window)){
     alert("الصوت غير مدعوم في هذا المتصفح");
     return;
   }
   soundEnabled=true;
+  speechSynthesis.cancel();
   loadVoices();
-  alert("✅ تم تفعيل الصوت، سيعمل طوال الدرس");
+  alert("✅ تم تفعيل الصوت");
 }
 
 function loadVoices(){
@@ -97,20 +153,22 @@ function loadVoices(){
 }
 speechSynthesis.onvoiceschanged=loadVoices;
 
-function speak(t){
+function speak(text){
   if(!soundEnabled)return;
   speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(t);
+  const u=new SpeechSynthesisUtterance(text);
   if(voice)u.voice=voice;
   u.lang="ar-SA";
   u.rate=0.9;
   speechSynthesis.speak(u);
 }
 
-/* ===== بيانات الطلاب ===== */
+/* ===== بيانات ===== */
 let student="",parent="";
-let level=1,correct=0,wrong=0,total=0;
+let level=1;
+let correct=0,wrong=0,total=0;
 let a=0,b=0;
+const MAX_LEVEL=3;
 
 /* ===== عناصر ===== */
 const intro=document.getElementById("intro");
@@ -121,8 +179,7 @@ const visualBox=document.getElementById("visualBox");
 const note=document.getElementById("note");
 const answer=document.getElementById("answer");
 const progress=document.getElementById("progress");
-
-function ar(n){return n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);}
+const checkBtn=document.getElementById("checkBtn");
 
 /* ===== بدء ===== */
 function startLesson(){
@@ -133,11 +190,20 @@ function startLesson(){
   nextProblem();
 }
 
-/* ===== توليد متدرج ===== */
+/* ===== توليد ===== */
 function gen(){
-  if(level===1){a=2+Math.floor(Math.random()*2);b=1+Math.floor(Math.random()*2);}
-  else if(level===2){a=3+Math.floor(Math.random()*2);b=2+Math.floor(Math.random()*2);}
-  else{a=4+Math.floor(Math.random()*2);b=3+Math.floor(Math.random()*2);}
+  if(level===1){
+    a=2+Math.floor(Math.random()*2);
+    b=1+Math.floor(Math.random()*2);
+  }
+  else if(level===2){
+    a=3+Math.floor(Math.random()*2);
+    b=2+Math.floor(Math.random()*2);
+  }
+  else{
+    a=4+Math.floor(Math.random()*2);
+    b=3+Math.floor(Math.random()*2);
+  }
 }
 
 /* ===== مسألة ===== */
@@ -145,6 +211,7 @@ function nextProblem(){
   note.classList.add("hidden");
   answer.value="";
   gen();
+
   charBox.innerHTML=`<div class="avatar">👨‍🏫</div><div class="name">المعلّم</div>`;
   const t=`يا ${student} 🌿
 لدينا ${ar(a)} مجموعات،
@@ -154,31 +221,49 @@ function nextProblem(){
   speak(t);
 
   visualBox.innerHTML="";
-  for(let i=0;i<a;i++)visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
-
+  for(let i=0;i<a;i++){
+    visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
+  }
   progress.innerText=`محاولاتك: ${ar(total)} | الصحيح: ${ar(correct)}`;
 }
 
 /* ===== تحقق ===== */
 function check(){
+  const val=Number(answer.value);
+  if(!Number.isInteger(val)) return;
+
+  checkBtn.disabled=true;
   total++;
-  if(Number(answer.value)===a*b){
-    correct++;wrong=0;
-    if(correct%5===0)level++;
+
+  if(val===a*b){
+    correct++;
+    wrong=0;
+
+    if(correct%5===0 && level<MAX_LEVEL) level++;
+
     const t=`أحسنت يا ${student} 🌟
 محاولتك عبادة جميلة،
 وهذا يفرح ${parent}.`;
-    note.innerText=t;note.classList.remove("hidden");speak(t);
-    setTimeout(nextProblem,1800);
+    note.innerText=t;
+    note.classList.remove("hidden");
+    speak(t);
+
+    setTimeout(()=>{
+      checkBtn.disabled=false;
+      nextProblem();
+    },1800);
+
   }else{
     wrong++;
-    const t=wrong>=2?
-    `لا بأس 🌷
+    const t=wrong>=2
+    ?`لا بأس 🌷
 سأشرح لك بهدوء،
-والله مع الصابرين.`:
-    `حاول مرة أخرى بهدوء،
+والله مع الصابرين.`
+    :`حاول مرة أخرى بهدوء،
 وأنا معك.`;
-    textBox.innerText=t;speak(t);
+    textBox.innerText=t;
+    speak(t);
+    checkBtn.disabled=false;
   }
 }
 
@@ -189,7 +274,9 @@ ${ar(a)} مجموعات،
 في كل مجموعة ${ar(b)}.
 اكتب الجمع في دفترك،
 واطلب من ${parent} أن يشجّعك 🤍`;
-  note.innerText=t;note.classList.remove("hidden");speak(t);
+  note.innerText=t;
+  note.classList.remove("hidden");
+  speak(t);
 }
 </script>
 </body>
