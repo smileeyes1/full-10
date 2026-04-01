@@ -67,8 +67,6 @@ button:disabled{
   cursor:not-allowed
 }
 .secondary{background:#1b5e20}
-.save{background:#0277bd}
-.fullscreen-btn{background:#2e7d32}
 .note{
   background:#fff8e1;
   padding:12px;
@@ -82,6 +80,8 @@ button:disabled{
   color:#2e7d32
 }
 .hidden{display:none}
+.save{background:#0277bd}
+.fullscreen-btn{background:#2e7d32}
 </style>
 </head>
 
@@ -133,6 +133,11 @@ button:disabled{
 </div>
 
 <script>
+/* ===== إزالة الإيموجي من الصوت فقط ===== */
+function cleanForSpeech(text){
+  return text.replace(/[\u{1F300}-\u{1FAFF}]/gu,"");
+}
+
 /* ===== أرقام عربية ===== */
 function ar(n){
   return n.toString().replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
@@ -160,6 +165,7 @@ function enableSound(){
   loadVoices();
   alert("✅ تم تفعيل الصوت");
 }
+
 function loadVoices(){
   voice=speechSynthesis.getVoices().find(v=>v.lang.startsWith("ar"))||null;
 }
@@ -167,7 +173,9 @@ speechSynthesis.onvoiceschanged=loadVoices;
 
 function speak(text){
   if(!soundEnabled)return;
-  const u=new SpeechSynthesisUtterance(text);
+  speechSynthesis.cancel();
+  const cleanText=cleanForSpeech(text);
+  const u=new SpeechSynthesisUtterance(cleanText);
   if(voice)u.voice=voice;
   u.lang="ar-SA";
   u.rate=0.9;
@@ -176,7 +184,7 @@ function speak(text){
 
 /* ===== البيانات ===== */
 let student="",parent="";
-let level=1, correct=0, wrong=0, total=0;
+let level=1,correct=0,wrong=0,total=0;
 let a=0,b=0;
 const MAX_LEVEL=3;
 
@@ -187,7 +195,6 @@ function saveProgress(){
   alert("✅ تم حفظ التقدّم");
 }
 
-/* ===== استرجاع التقدّم ===== */
 function loadProgress(){
   const data=localStorage.getItem("lessonProgress");
   if(!data){
@@ -212,7 +219,6 @@ function loadProgress(){
 /* ===== عناصر ===== */
 const intro=document.getElementById("intro");
 const lesson=document.getElementById("lesson");
-const charBox=document.getElementById("charBox");
 const textBox=document.getElementById("textBox");
 const visualBox=document.getElementById("visualBox");
 const note=document.getElementById("note");
@@ -241,6 +247,7 @@ function nextProblem(){
   note.classList.add("hidden");
   answer.value="";
   gen();
+
   const t=`يا ${student} 🌿
 لدينا ${ar(a)} مجموعات،
 في كل مجموعة ${ar(b)} عناصر.
@@ -250,6 +257,7 @@ function nextProblem(){
 
   visualBox.innerHTML="";
   for(let i=0;i<a;i++) visualBox.innerHTML+="⭐ ".repeat(b)+"<br>";
+
   progress.innerText=`محاولاتك: ${ar(total)} | الصحيح: ${ar(correct)}`;
 }
 
@@ -257,23 +265,29 @@ function nextProblem(){
 function check(){
   const val=Number(answer.value);
   if(!Number.isInteger(val))return;
+
   checkBtn.disabled=true;
   total++;
+
   if(val===a*b){
     correct++; wrong=0;
-    if(correct%5===0&&level<MAX_LEVEL)level++;
+    if(correct%5===0 && level<MAX_LEVEL) level++;
+
     const t=`أحسنت يا ${student} 🌟
 محاولتك عبادة جميلة،
 وهذا يفرح ${parent}.`;
     note.innerText=t;
     note.classList.remove("hidden");
     speak(t);
+
     setTimeout(()=>{checkBtn.disabled=false;nextProblem();},1800);
   }else{
     wrong++;
-    const t=wrong>=2?`لا بأس 🌷
+    const t=wrong>=2
+      ?`لا بأس 🌷
 سأشرح لك بهدوء،
-والله مع الصابرين.`:`حاول مرة أخرى بهدوء،
+والله مع الصابرين.`
+      :`حاول مرة أخرى بهدوء،
 وأنا معك.`;
     textBox.innerText=t;
     speak(t);
